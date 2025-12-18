@@ -5,7 +5,7 @@ from email.message import EmailMessage
 # ===============================
 # MODO MANTENIMIENTO
 # ===============================
-MODO_MANTENIMIENTO = False  # ⬅️ CAMBIA A True PARA CERRAR LA APP
+MODO_MANTENIMIENTO = True  # ⬅️ CAMBIA A True PARA CERRAR LA APP
 
 if MODO_MANTENIMIENTO:
     st.set_page_config(
