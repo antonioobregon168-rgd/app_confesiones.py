@@ -3,38 +3,7 @@ import smtplib
 from email.message import EmailMessage
 
 # ===============================
-# CONFIGURACIÓN CORREO
-# ===============================
-CORREO_RECEPTOR = "antonioobregon168@gmail.com"     # AQUÍ VA TU CORREO
-CORREO_EMISOR = "antonioobregon168@gmail.com"     # el mismo
-CONTRASENA_APP = "oqbg sipv eztv wuzv"      # contraseña de aplicación
-
-# ===============================
-# MODO MANTENIMIENTO
-# ===============================
-MODO_MANTENIMIENTO = False
-
-if MODO_MANTENIMIENTO:
-    st.set_page_config(page_title="En mantenimiento", page_icon="🛠️")
-    st.markdown("""
-        <div style="
-            background-color:white;
-            color:black;
-            padding:40px;
-            margin-top:100px;
-            border-radius:15px;
-            text-align:center;
-            box-shadow:0px 10px 30px rgba(0,0,0,0.15);
-        ">
-            <h1>🛠️ En mantenimiento</h1>
-            <p>La app está siendo actualizada</p>
-            <p><b>Por Antonio</b> 👨‍💻</p>
-        </div>
-    """, unsafe_allow_html=True)
-    st.stop()
-
-# ===============================
-# CONFIGURACIÓN APP
+# CONFIGURACIÓN DE LA PÁGINA
 # ===============================
 st.set_page_config(
     page_title="Confesiones Anónimas",
@@ -43,47 +12,73 @@ st.set_page_config(
 )
 
 st.title("📩 Buzón de Confesiones")
-st.write("Envía un mensaje de forma anónima y segura.")
+st.write(
+    "Envía una confesión de forma **anónima**. "
+    "Si deseas respuesta, puedes dejar tu correo (opcional)."
+)
 
-st.info("⚠️ Usa esta app con respeto. No envíes amenazas ni contenido ofensivo.")
+st.divider()
 
 # ===============================
 # FORMULARIO
 # ===============================
 with st.form("form_confesion"):
-    nombre = st.text_input("Tu nombre (opcional)")
-    mensaje = st.text_area("Escribe tu confesión", max_chars=500)
-    enviar = st.form_submit_button("📨 Enviar mensaje")
+    correo_usuario = st.text_input(
+        "📧 Tu correo (opcional, solo si quieres respuesta)"
+    )
+
+    mensaje = st.text_area(
+        "💬 Escribe tu confesión",
+        placeholder="Aquí puedes escribir lo que quieras decir...",
+        height=180
+    )
+
+    enviar = st.form_submit_button("📨 Enviar confesión")
 
 # ===============================
 # ENVÍO DE CORREO
 # ===============================
 if enviar:
     if mensaje.strip() == "":
-        st.error("❌ El mensaje no puede estar vacío")
+        st.warning("⚠️ El mensaje no puede estar vacío")
     else:
         try:
+            # 🔐 Datos desde st.secrets
+            EMAIL_REMITENTE = st.secrets["EMAIL_REMITENTE"]
+            CONTRASENA_APP = st.secrets["CONTRASENA_APP"]
+            EMAIL_DESTINO = st.secrets["EMAIL_DESTINO"]
+
+            # Crear email
             email = EmailMessage()
-            email["From"] = CORREO_EMISOR
-            email["To"] = CORREO_RECEPTOR
+            email["From"] = EMAIL_REMITENTE
+            email["To"] = EMAIL_DESTINO
             email["Subject"] = "📩 Nueva confesión recibida"
 
-            contenido = f"""
-Nueva confesión recibida:
+            # Si el usuario puso correo → Reply-To
+            if correo_usuario:
+                email["Reply-To"] = correo_usuario
 
-Nombre: {nombre if nombre else "Anónimo"}
+            email.set_content(
+                f"""
+📩 NUEVA CONFESIÓN
 
 Mensaje:
 {mensaje}
-"""
-            email.set_content(contenido)
 
+Correo del remitente:
+{correo_usuario if correo_usuario else "Anónimo"}
+"""
+            )
+
+            # Enviar con Gmail
             with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-                smtp.login(CORREO_EMISOR, CONTRASENA_APP)
+                smtp.login(EMAIL_REMITENTE, CONTRASENA_APP)
                 smtp.send_message(email)
 
-            st.success("✅ Mensaje enviado correctamente. Gracias por compartir.")
+            st.success("✅ Tu confesión fue enviada correctamente")
+            st.balloons()
 
         except Exception as e:
-            st.error("❌ Error al enviar el mensaje. Intenta más tarde.")
+            st.error("❌ Ocurrió un error al enviar el mensaje")
+            st.code(str(e))
 
