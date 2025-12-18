@@ -5,9 +5,9 @@ from email.message import EmailMessage
 # ===============================
 # CONFIGURACIÓN CORREO
 # ===============================
-CORREO_RECEPTOR = antonioobregon168@gmail.com      # AQUÍ VA TU CORREO
-CORREO_EMISOR = antonioobregon168@gmail.com      # el mismo
-CONTRASENA_APP = oqbg sipv eztv wuzv      # contraseña de aplicación
+CORREO_RECEPTOR = "antonioobregon168@gmail.com"     # AQUÍ VA TU CORREO
+CORREO_EMISOR = "antonioobregon168@gmail.com"     # el mismo
+CONTRASENA_APP = "oqbg sipv eztv wuzv"      # contraseña de aplicación
 
 # ===============================
 # MODO MANTENIMIENTO
