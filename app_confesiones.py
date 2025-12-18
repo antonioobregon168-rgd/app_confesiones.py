@@ -3,18 +3,53 @@ import smtplib
 from email.message import EmailMessage
 
 # ===============================
-# CONFIGURACIÓN DE LA PÁGINA
+# MODO MANTENIMIENTO
+# ===============================
+MODO_MANTENIMIENTO = False  # ⬅️ CAMBIA A True PARA CERRAR LA APP
+
+if MODO_MANTENIMIENTO:
+    st.set_page_config(
+        page_title="En mantenimiento",
+        page_icon="🛠️",
+        layout="centered"
+    )
+
+    st.markdown(
+        """
+        <div style="
+            background-color: white;
+            padding: 50px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        ">
+            <h1 style="color:black;">🚫 Página cerrada por el momento</h1>
+            <p style="font-size:18px; color:black;">
+                Lo sentimos, no se están recibiendo confesiones ahora.
+            </p>
+            <p style="margin-top:30px; color:gray;">
+                Creada por <b>Antonio</b>
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.stop()
+
+# ===============================
+# CONFIGURACIÓN NORMAL
 # ===============================
 st.set_page_config(
-    page_title="Confesiones Anónimas",
+    page_title="Confesiones",
     page_icon="📩",
     layout="centered"
 )
 
 st.title("📩 Buzón de Confesiones")
 st.write(
-    "Envía una confesión de forma **anónima**. "
-    "Si deseas respuesta, puedes dejar tu correo (opcional)."
+    "Puedes enviar una confesión. "
+    "Tu nombre y correo son opcionales si deseas respuesta."
 )
 
 st.divider()
@@ -23,13 +58,11 @@ st.divider()
 # FORMULARIO
 # ===============================
 with st.form("form_confesion"):
-    correo_usuario = st.text_input(
-        "📧 Tu correo (opcional, solo si quieres respuesta)"
-    )
-
-    mensaje = st.text_area(
+    nombre = st.text_input("👤 Tu nombre (opcional)")
+    correo = st.text_input("📧 Tu correo (opcional, para responderte)")
+    confesion = st.text_area(
         "💬 Escribe tu confesión",
-        placeholder="Aquí puedes escribir lo que quieras decir...",
+        placeholder="Escribe aquí lo que quieras confesar…",
         height=180
     )
 
@@ -39,46 +72,47 @@ with st.form("form_confesion"):
 # ENVÍO DE CORREO
 # ===============================
 if enviar:
-    if mensaje.strip() == "":
-        st.warning("⚠️ El mensaje no puede estar vacío")
+    if confesion.strip() == "":
+        st.warning("⚠️ La confesión no puede estar vacía")
     else:
         try:
-            # 🔐 Datos desde st.secrets
             EMAIL_REMITENTE = st.secrets["EMAIL_REMITENTE"]
             CONTRASENA_APP = st.secrets["CONTRASENA_APP"]
             EMAIL_DESTINO = st.secrets["EMAIL_DESTINO"]
 
-            # Crear email
             email = EmailMessage()
             email["From"] = EMAIL_REMITENTE
             email["To"] = EMAIL_DESTINO
             email["Subject"] = "📩 Nueva confesión recibida"
 
-            # Si el usuario puso correo → Reply-To
-            if correo_usuario:
-                email["Reply-To"] = correo_usuario
+            # Para que puedas responder directo
+            if correo:
+                email["Reply-To"] = correo
 
             email.set_content(
                 f"""
-📩 NUEVA CONFESIÓN
+📩 NUEVA CONFESIÓN RECIBIDA
 
-Mensaje:
-{mensaje}
+👤 Nombre:
+{nombre if nombre else "Anónimo"}
 
-Correo del remitente:
-{correo_usuario if correo_usuario else "Anónimo"}
+📧 Correo:
+{correo if correo else "No proporcionado"}
+
+💬 Confesión:
+{confesion}
 """
             )
 
-            # Enviar con Gmail
             with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
                 smtp.login(EMAIL_REMITENTE, CONTRASENA_APP)
                 smtp.send_message(email)
 
-            st.success("✅ Tu confesión fue enviada correctamente")
+            st.success("✅ Confesión enviada correctamente")
             st.balloons()
 
         except Exception as e:
-            st.error("❌ Ocurrió un error al enviar el mensaje")
+            st.error("❌ Error al enviar la confesión")
             st.code(str(e))
+
 
